@@ -6,6 +6,9 @@
  *
  *
  * @package        	Ganipara
+ * @author			Berkay UNAL
+ * @author			Bora UNAL
+ * @author			Ganipara Team
  * @license         http://ganipara.com
  * @link			http://ganipara.com
  */
@@ -20,6 +23,7 @@ class Ganipara {
 	private static $instance;
 
 	public $page;
+	public $webhook;
 
 	function __construct($config = array()) {
 
@@ -27,6 +31,7 @@ class Ganipara {
 
 		$this -> rest = new Ganipara_rest();
 		$this -> page = new Ganipara_page();
+		$this -> webhook = new Ganipara_webhook();
 	}
 
 	public static function getInstance() {
@@ -132,240 +137,8 @@ class Ganipara {
 		return $data;
 	}
 
-	/*
-	 |--------------------------------------------------------------------------
-	 | Webhook Methods
-	 |--------------------------------------------------------------------------
-	 |
-	 |
-	 */
 
-	/**
-	 * Create webhook
-	 *
-	 * @param string    $event  Webhook event
-	 * @param string    $url  URL that will recieve the data
-	 * @param string    $name  Name of the webhook
-	 *
-	 *
-	 */
-	public function webhook_create($event = FALSE, $url = FALSE, $name = FALSE) {
-
-		if (empty($event) || empty($url)) {
-			throw new Exception("Missing parameter");
-		}
-
-		$request = array();
-		$request['event'] = $event;
-		$request['url'] = $url;
-		if (!empty($name)) {
-			$request['name'] = $name;
-		}
-		$data = $this -> rest -> post('webhook/create/', $request);
-
-		return $data;
-	}
-
-	/**
-	 * Delete webhook
-	 *
-	 * @param int    $id  Webhook ID
-	 *
-	 */
-
-	public function webhook_delete($id = FALSE) {
-
-		if (empty($id) || !is_numeric($id)) {
-			throw new Exception("Missing parameter");
-		}
-
-		$request = array();
-		$request['id'] = $id;
-
-		$data = $this -> rest -> post('webhook/delete/', $request);
-
-		return $data;
-	}
-
-	/**
-	 * Detail webhook
-	 *
-	 * @param int    $id  Webhook ID
-	 *
-	 */
-
-	public function webhook_detail($id = FALSE) {
-
-		if (empty($id) || !is_numeric($id)) {
-			throw new Exception("Missing parameter");
-		}
-
-		$request = array();
-		$request['id'] = $id;
-
-		$data = $this -> rest -> get('webhook/detail/', $request);
-
-		return $data;
-	}
-
-	/**
-	 * List webhooks
-	 *
-	 * @param string    $url  Webhook URL
-	 * @param string    $event  Webhook event
-	 * @param string    $date_start  Create date in ISO 8601 format
-	 * @param string    $date_end  Create date in ISO 8601 format
-	 * @param int    $limit  Items per page
-	 * @param int    $page  List page
-	 *
-	 */
-
-	public function webhook_list($url = FALSE, $event = FALSE, $date_start = FALSE, $date_end = FALSE, $limit = FALSE, $page = FALSE) {
-
-		$request = array();
-
-		if (!empty($url)) {
-			$request['url'] = $url;
-		}
-		if (!empty($event)) {
-			$request['event'] = $event;
-		}
-		if (!empty($date_start)) {
-			$request['date_start'] = $date_start;
-		}
-		if (!empty($date_end)) {
-			$request['date_end'] = $date_end;
-		}
-		if (!empty($limit)) {
-			$request['limit'] = $limit;
-		}
-		if (!empty($page)) {
-			$request['page'] = $page;
-		}
-
-		$data = $this -> rest -> get('webhook/list/', $request);
-
-		return $data;
-	}
-
-	/**
-	 * Count webhooks
-	 *
-	 * @param string    $url  Webhook URL
-	 * @param string    $event  Webhook event
-	 * @param string    $date_start  Create date in ISO 8601 format
-	 * @param string    $date_end  Create date in ISO 8601 format
-	 * @param int    $limit  Items per page
-	 * @param int    $page  List page
-	 *
-	 */
-
-	public function webhook_count($url = FALSE, $event = FALSE, $date_start = FALSE, $date_end = FALSE) {
-
-		$request = array();
-
-		if (!empty($url)) {
-			$request['url'] = $url;
-		}
-		if (!empty($event)) {
-			$request['event'] = $event;
-		}
-		if (!empty($date_start)) {
-			$request['date_start'] = $date_start;
-		}
-		if (!empty($date_end)) {
-			$request['date_end'] = $date_end;
-		}
-		if (!empty($limit)) {
-			$request['limit'] = $limit;
-		}
-		if (!empty($page)) {
-			$request['page'] = $page;
-		}
-
-		$data = $this -> rest -> get('webhook/count/', $request);
-
-		return $data;
-	}
-
-	/**
-	 * Update webhook
-	 *
-	 * @param int    	$id  Webhook ID
-	 * @param string    $event  Webhook event
-	 * @param string    $url  URL that will recieve the data
-	 * @param string    $name  Name of the webhook
-	 *
-	 */
-
-	public function webhook_update($id = FALSE, $event = FALSE, $url = FALSE, $name = FALSE) {
-
-		if (empty($id) || !is_numeric($id)) {
-			throw new Exception("Missing parameter");
-		}
-
-		$request = array();
-		$request['id'] = $id;
-
-		if (!empty($event)) {
-			$request['event'] = $event;
-		}
-
-		if (!empty($url)) {
-			$request['url'] = $url;
-		}
-		if (!empty($name)) {
-			$request['name'] = $name;
-		}
-
-		$data = $this -> rest -> post('webhook/update/', $request);
-
-		return $data;
-	}
-
-	/*
-	 |--------------------------------------------------------------------------
-	 | Page Methods
-	 |--------------------------------------------------------------------------
-	 |
-	 |
-	 */
-
-	/**
-	 * Count pages
-	 *
-	 * @param string    $title  Page title
-	 * @param string    $slug  Page slug
-	 * @param string    $published_status  Page status (published|unpublished)
-	 * @param string    $date_start  Create date in ISO 8601 format
-	 * @param string    $date_end  Create date in ISO 8601 format
-
-	 *
-	 */
-
-	public function page_count($title = FALSE, $slug = FALSE, $published_status = FALSE, $date_start = FALSE, $date_end = FALSE) {
-
-		$request = array();
-
-		if (!empty($title)) {
-			$request['title'] = $title;
-		}
-		if (!empty($slug)) {
-			$request['slug'] = $slug;
-		}
-		if (!empty($published_status)) {
-			$request['published_status'] = $published_status;
-		}
-		if (!empty($date_start)) {
-			$request['date_start'] = $date_start;
-		}
-		if (!empty($date_end)) {
-			$request['date_end'] = $date_end;
-		}
-
-		$data = $this -> rest -> get('page/count/', $request);
-		return $data;
-	}
+	
 
 	/*
 	 |--------------------------------------------------------------------------
@@ -819,6 +592,263 @@ class Ganipara_page {
 		}
 
 		$data = $this -> gpInstance -> rest -> get('page/count/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+}
+
+class Ganipara_webhook {
+
+	protected $gpInstance;
+	protected $cClass = "Ganipara_webhook";
+	private $_id;
+	private $_url;
+	private $_name;
+	private $_event;
+	private $_limit;
+	private $_page;
+
+	function __construct() {
+		$this -> gpInstance = Ganipara::getInstance();
+	}
+
+	function __deconstruct() {
+
+	}
+
+	public function __set($key, $value) {
+
+		switch ($key) {
+
+			case "id" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+
+			case "limit" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+
+			case "page" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+
+			case "slug" :
+				$value = trim(strip_tags($value));
+				break;
+
+			case "name" :
+				$value = trim(strip_tags($value));
+				break;
+
+			case "url" :
+				$value = trim(strip_tags($value));
+				break;
+
+			case "event" :
+				$value = trim(strip_tags($value));
+				break;
+		}
+
+		$property = "_$key";
+		if (!property_exists($this, $property))
+			throw new Exception("Property($key) not found");
+
+		$this -> {$property} = $value;
+	}
+
+	public function __get($key) {
+		switch ($key) {
+
+			default :
+				$property = "_$key";
+				if (!property_exists($this, $property)) {
+					throw new Exception("Property($key) not found");
+				}
+				return $this -> {$property};
+				break;
+		}
+	}
+
+	function __reset() {
+		$this -> gpInstance -> page = new $this->cClass();
+	}
+
+	/**
+	 * Update webhook
+	 *
+	 */
+
+	function update() {
+
+		if (empty($this -> _id) || empty($this -> _content)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+		$request['id'] = $this -> id;
+
+		if (!empty($this -> _event)) {
+			$request['event'] = $this -> event;
+		}
+
+		if (!empty($this -> _url)) {
+			$request['url'] = $this -> url;
+		}
+		if (!empty($this -> _name)) {
+			$request['name'] = $this -> name;
+		}
+
+		$data = $this -> gpInstance -> rest -> post('webhook/update/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Create webhook
+	 *
+	 */
+
+	function create() {
+
+		if (empty($this -> _event) || empty($this -> _url)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+		$request['event'] = $this -> event;
+		$request['url'] = $this -> url;
+
+		if (!empty($this -> _name)) {
+			$request['name'] = $this -> name;
+		}
+
+		$data = $this -> gpInstance -> rest -> post('webhook/create/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Delete webhook
+	 *
+	 */
+
+	function delete() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+
+		$request['id'] = $this -> id;
+
+		$data = $this -> gpInstance -> rest -> post('webhook/delete/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Detail webhook
+	 *
+	 */
+
+	function detail() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+
+		$request['id'] = $this -> id;
+
+		$data = $this -> gpInstance -> rest -> get('webhook/detail/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * List webhooks
+	 *
+	 */
+
+	function get() {
+
+		$request = array();
+
+		if (!empty($this -> _url)) {
+			$request['url'] = $this -> url;
+		}
+
+		if (!empty($this -> _event)) {
+			$request['event'] = $this -> event;
+		}
+
+		if (!empty($this -> _date_start)) {
+			$request['date_start'] = $this -> date_start;
+		}
+
+		if (!empty($this -> _date_end)) {
+			$request['date_end'] = $this -> date_end;
+		}
+
+		if (!empty($this -> _limit)) {
+			$request['limit'] = $this -> limit;
+		}
+		if (!empty($this -> _page)) {
+			$request['page'] = $this -> page;
+		}
+
+		$data = $this -> gpInstance -> rest -> get('webhook/list/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Count page
+	 *
+	 */
+
+	function record_count() {
+
+		$request = array();
+
+		if (!empty($this -> _url)) {
+			$request['url'] = $this -> url;
+		}
+
+		if (!empty($this -> _event)) {
+			$request['event'] = $this -> event;
+		}
+
+		if (!empty($this -> _date_start)) {
+			$request['date_start'] = $this -> date_start;
+		}
+
+		if (!empty($this -> _date_end)) {
+			$request['date_end'] = $this -> date_end;
+		}
+
+		$data = $this -> gpInstance -> rest -> get('webhook/count/', $request);
 		$this -> __reset();
 
 		return $data;
