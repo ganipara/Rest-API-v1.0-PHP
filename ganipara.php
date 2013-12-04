@@ -24,6 +24,8 @@ class Ganipara {
 
 	public $page;
 	public $webhook;
+	public $cargo;
+	public $shop;
 
 	function __construct($config = array()) {
 
@@ -32,6 +34,8 @@ class Ganipara {
 		$this -> rest = new Ganipara_rest();
 		$this -> page = new Ganipara_page();
 		$this -> webhook = new Ganipara_webhook();
+		$this -> cargo = new Ganipara_cargo();
+		$this -> shop = new Ganipara_shop();
 	}
 
 	public static function getInstance() {
@@ -75,70 +79,6 @@ class Ganipara {
 		echo "</pre>";
 		echo "</fieldset>";
 	}
-
-	/*
-	 |--------------------------------------------------------------------------
-	 | Shop Methods
-	 |--------------------------------------------------------------------------
-	 |
-	 | shop_detail: Return detail about the shop
-	 |
-	 */
-
-	public function shop_detail() {
-
-		$data = $this -> rest -> get('shop/detail/');
-		return $data;
-	}
-
-	/*
-	 |--------------------------------------------------------------------------
-	 | Cargo Methods
-	 |--------------------------------------------------------------------------
-	 |
-	 |
-	 */
-
-	/**
-	 * Calculate cargo fee from desi dimension
-	 *
-	 * @param int    $unit  Dimension in desi
-	 *
-	 */
-	public function cargo_calculate($unit = FALSE) {
-
-		$request = array();
-		$request['unit'] = $unit;
-		$data = $this -> rest -> get('cargo/calculate/', $request);
-
-		return $data;
-	}
-
-	/**
-	 * Calculate cargo dimension from width, height, depth
-	 *
-	 * @param int    $height  Dimension in cm
-	 * @param int    $width  Dimension in cm
-	 * @param int    $depth  Dimension in cm
-	 *
-	 */
-	public function cargo_calculate_unit($height = FALSE, $width = FALSE, $depth = FALSE) {
-
-		if (!is_numeric($height) || !is_numeric($width) || !is_numeric($depth)) {
-			throw new Exception("Missing parameter");
-		}
-
-		$request = array();
-		$request['height'] = $height;
-		$request['width'] = $width;
-		$request['depth'] = $depth;
-		$data = $this -> rest -> get('cargo/unit/', $request);
-
-		return $data;
-	}
-
-
-	
 
 	/*
 	 |--------------------------------------------------------------------------
@@ -849,6 +789,164 @@ class Ganipara_webhook {
 		}
 
 		$data = $this -> gpInstance -> rest -> get('webhook/count/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+}
+
+class Ganipara_cargo {
+
+	protected $gpInstance;
+	protected $cClass = "Ganipara_cargo";
+
+	function __construct() {
+		$this -> gpInstance = Ganipara::getInstance();
+	}
+
+	function __deconstruct() {
+
+	}
+
+	public function __set($key, $value) {
+
+		switch ($key) {
+
+			case "id" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+		}
+
+		$property = "_$key";
+		if (!property_exists($this, $property))
+			throw new Exception("Property($key) not found");
+
+		$this -> {$property} = $value;
+	}
+
+	public function __get($key) {
+		switch ($key) {
+
+			default :
+				$property = "_$key";
+				if (!property_exists($this, $property)) {
+					throw new Exception("Property($key) not found");
+				}
+				return $this -> {$property};
+				break;
+		}
+	}
+
+	function __reset() {
+		$this -> gpInstance -> page = new $this->cClass();
+	}
+
+	/**
+	 * Calculate cargo dimension from width, height, depth
+	 *
+	 */
+
+	function calculate_unit($height = FALSE, $width = FALSE, $depth = FALSE) {
+
+		if (!is_numeric($height) || !is_numeric($width) || !is_numeric($depth)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+		$request['height'] = $height;
+		$request['width'] = $width;
+		$request['depth'] = $depth;
+
+		$data = $this -> gpInstance -> rest -> get('cargo/unit/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Calculate cargo dimension from width, height, depth
+	 *
+	 */
+
+	function calculate($unit = FALSE) {
+
+		if (!is_numeric($unit)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+		$request['unit'] = $unit;
+
+		$data = $this -> gpInstance -> rest -> get('cargo/calculate/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+}
+
+class Ganipara_shop {
+
+	protected $gpInstance;
+	protected $cClass = "Ganipara_shop";
+
+	function __construct() {
+		$this -> gpInstance = Ganipara::getInstance();
+	}
+
+	function __deconstruct() {
+
+	}
+
+	public function __set($key, $value) {
+
+		switch ($key) {
+
+			case "id" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+		}
+
+		$property = "_$key";
+		if (!property_exists($this, $property))
+			throw new Exception("Property($key) not found");
+
+		$this -> {$property} = $value;
+	}
+
+	public function __get($key) {
+		switch ($key) {
+
+			default :
+				$property = "_$key";
+				if (!property_exists($this, $property)) {
+					throw new Exception("Property($key) not found");
+				}
+				return $this -> {$property};
+				break;
+		}
+	}
+
+	function __reset() {
+		$this -> gpInstance -> page = new $this->cClass();
+	}
+
+	/**
+	 * Return detail about the shop
+	 *
+	 */
+
+	function detail() {
+
+		$data = $this -> gpInstance -> rest -> get('shop/detail/');
 		$this -> __reset();
 
 		return $data;
