@@ -26,6 +26,7 @@ class Ganipara {
 	public $webhook;
 	public $cargo;
 	public $shop;
+	public $collection;
 
 	function __construct($config = array()) {
 
@@ -36,6 +37,7 @@ class Ganipara {
 		$this -> webhook = new Ganipara_webhook();
 		$this -> cargo = new Ganipara_cargo();
 		$this -> shop = new Ganipara_shop();
+		$this -> collection = new Ganipara_collection();
 	}
 
 	public static function getInstance() {
@@ -80,183 +82,46 @@ class Ganipara {
 		echo "</fieldset>";
 	}
 
-	/*
-	 |--------------------------------------------------------------------------
-	 | Collection Methods
-	 |--------------------------------------------------------------------------
-	 |
-	 |
-	 */
-
-	/**
-	 * Create collection
-	 *
-	 * @param string    $title  Collection title
-	 * @param string    $slug  Collection slug. Leave blank for auto generation
-	 * @param string    $description  Collection description
-	 * @param string    $meta_title  Meta Title for the page
-	 * @param string    $meta_description Meta Description for the page
-	 *
-	 */
-
-	public function collection_create($title = FALSE, $slug = FALSE, $description = FALSE, $meta_title = FALSE, $meta_description = FALSE) {
-
-		if (empty($title)) {
-			throw new Exception("Missing parameter");
-		}
-
-		$request = array();
-		$request['title'] = $title;
-
-		if (!empty($slug)) {
-			$request['slug'] = $slug;
-		}
-		if (!empty($description)) {
-			$request['description'] = $description;
-		}
-		if (!empty($meta_title)) {
-			$request['meta_title'] = $meta_title;
-		}
-		if (!empty($meta_description)) {
-			$request['meta_description'] = $meta_description;
-		}
-
-		$data = $this -> rest -> post('page/create/', $request);
-
-		return $data;
+	function now() {
+		return date('Y-m-d H:i:s');
 	}
 
-	/**
-	 * Update page
-	 *
-	 * @param int    	$id  Page ID
-	 * @param string    $title  Page title
-	 * @param string    $content  Page content
-	 * @param string    $slug  Page slug. Leave blank for auto generation
-	 * @param string    $published_status  Page status (published|unpublished)
-	 * @param string    $meta_title  Meta Title for the page
-	 * @param string    $meta_description Meta Description for the page
-	 *
-	 */
-
-	public function collection_update($id = FALSE, $title = FALSE, $content = FALSE, $slug = FALSE, $published_status = FALSE, $meta_title = FALSE, $meta_description = FALSE) {
-
-		if (empty($id) || !is_numeric($id)) {
-			throw new Exception("Missing parameter");
+	function is_date($date) {
+		$ddmmyyy = '(0[1-9]|[12][0-9]|3[01])[- \/.](0[1-9]|1[012])[- \/.](19|20)[0-9]{2}';
+		if (preg_match("/$ddmmyyy$/", $date)) {
+			return TRUE;
+		} else {
+			return FALSE;
 		}
-
-		$request = array();
-		$request['id'] = $id;
-
-		if (!empty($title)) {
-			$request['title'] = $title;
-		}
-
-		if (!empty($slug)) {
-			$request['slug'] = $slug;
-		}
-		if (!empty($content)) {
-			$request['content'] = $content;
-		}
-		if (!empty($published_status)) {
-			$request['published_status'] = $published_status;
-		}
-		if (!empty($meta_title)) {
-			$request['meta_title'] = $meta_title;
-		}
-		if (!empty($meta_description)) {
-			$request['meta_description'] = $meta_description;
-		}
-
-		$data = $this -> rest -> post('page/update/', $request);
-
-		return $data;
 	}
 
-	/**
-	 * Delete page
-	 *
-	 * @param int    $id  Page ID
-	 *
-	 */
-
-	public function collection_delete($id = FALSE) {
-
-		if (empty($id) || !is_numeric($id)) {
-			throw new Exception("Missing parameter");
+	function date_convert_to_ISO8601($date = "") {
+		if (empty($date)) {
+			$date = $this -> now();
 		}
-
-		$request = array();
-		$request['id'] = $id;
-
-		$data = $this -> rest -> post('page/delete/', $request);
-
-		return $data;
+		return date(DATE_ISO8601, strtotime($date));
 	}
 
-	/**
-	 * Detail page
-	 *
-	 * @param int    $id  Webhook ID
-	 *
-	 */
-
-	public function collection_detail($id = FALSE) {
-
-		if (empty($id) || !is_numeric($id)) {
-			throw new Exception("Missing parameter");
+	function date_convert_from_ISO8601($date = "") {
+		if (empty($date)) {
+			return date('Y-m-d H:i:s', strtotime($date));
 		}
-
-		$request = array();
-		$request['id'] = $id;
-
-		$data = $this -> rest -> get('page/detail/', $request);
-
-		return $data;
+		return FALSE;
 	}
 
-	/**
-	 * List pages
-	 *
-	 * @param string    $title  Page title
-	 * @param string    $slug  Page slug
-	 * @param string    $published_status  Page status (published|unpublished)
-	 * @param string    $date_start  Create date in ISO 8601 format
-	 * @param string    $date_end  Create date in ISO 8601 format
-	 * @param int    $limit  Items per page
-	 * @param int    $page  List page
-	 *
-	 */
-
-	public function collection_list($title = FALSE, $slug = FALSE, $published_status = FALSE, $date_start = FALSE, $date_end = FALSE, $limit = FALSE, $page = FALSE) {
-
-		$request = array();
-
-		if (!empty($title)) {
-			$request['title'] = $title;
-		}
-		if (!empty($slug)) {
-			$request['slug'] = $slug;
-		}
-		if (!empty($published_status)) {
-			$request['published_status'] = $published_status;
-		}
-		if (!empty($date_start)) {
-			$request['date_start'] = $date_start;
-		}
-		if (!empty($date_end)) {
-			$request['date_end'] = $date_end;
-		}
-		if (!empty($limit)) {
-			$request['limit'] = $limit;
-		}
-		if (!empty($page)) {
-			$request['page'] = $page;
+	function date_add_hours($date = "", $hour = "0") {
+		if ($date == "") {
+			$date = date("Y-m-d H:i:s");
 		}
 
-		$data = $this -> rest -> get('page/list/', $request);
-
-		return $data;
+		if ($hour >= 0) {
+			$hour = "+" . $hour;
+		} else {
+			$hour = "-" . abs($hour);
+		}
+		$newdate = strtotime("$hour hours", strtotime($date));
+		$newdate = date("Y-m-d H:i:s", $newdate);
+		return $newdate;
 	}
 
 }
@@ -399,22 +264,22 @@ class Ganipara_page {
 		}
 
 		$request = array();
-		$request['title'] = $this -> _title;
+		$request['title'] = $this -> title;
 
 		if (!empty($this -> _slug)) {
-			$request['slug'] = $this -> _slug;
+			$request['slug'] = $this -> slug;
 		}
 		if (!empty($this -> _content)) {
-			$request['content'] = $this -> _content;
+			$request['content'] = $this -> content;
 		}
 		if (!empty($this -> _published_status)) {
-			$request['published_status'] = $this -> _published_status;
+			$request['published_status'] = $this -> published_status;
 		}
 		if (!empty($this -> _meta_title)) {
-			$request['meta_title'] = $this -> _meta_title;
+			$request['meta_title'] = $this -> meta_title;
 		}
 		if (!empty($this -> _meta_description)) {
-			$request['meta_description'] = $this -> _meta_description;
+			$request['meta_description'] = $this -> meta_description;
 		}
 
 		$data = $this -> gpInstance -> rest -> post('page/create/', $request);
@@ -532,6 +397,306 @@ class Ganipara_page {
 		}
 
 		$data = $this -> gpInstance -> rest -> get('page/count/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+}
+
+class Ganipara_collection {
+
+	protected $gpInstance;
+	protected $cClass = "Ganipara_collection";
+	private $_id;
+	private $_title;
+	private $_slug;
+	private $_description;
+	private $_meta_title;
+	private $_product_id;
+	private $_meta_description;
+	private $_limit;
+	private $_page;
+
+	function __construct() {
+		$this -> gpInstance = Ganipara::getInstance();
+	}
+
+	function __deconstruct() {
+
+	}
+
+	public function __set($key, $value) {
+
+		switch ($key) {
+
+			case "id" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+
+			case "product_id" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+
+			case "limit" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+
+			case "page" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+
+			case "description" :
+				$value = trim(strip_tags($value));
+				break;
+				
+			case "meta_description" :
+				$value = trim(strip_tags($value));
+				break;
+
+			case "meta_title" :
+				$value = trim(strip_tags($value));
+				break;
+
+			case "slug" :
+				$value = trim(strip_tags($value));
+				break;
+
+			case "title" :
+				$value = trim(strip_tags($value));
+				break;
+		}
+
+		$property = "_$key";
+		if (!property_exists($this, $property))
+			throw new Exception("Property($key) not found");
+
+		$this -> {$property} = $value;
+	}
+
+	public function __get($key) {
+		switch ($key) {
+
+			default :
+				$property = "_$key";
+				if (!property_exists($this, $property)) {
+					throw new Exception("Property($key) not found");
+				}
+				return $this -> {$property};
+				break;
+		}
+	}
+
+	function __reset() {
+		$this -> gpInstance -> page = new $this->cClass();
+	}
+
+	/**
+	 * Update collection
+	 *
+	 */
+
+	function update() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+		$request['id'] = $this -> id;
+
+		if (!empty($this -> _title)) {
+			$request['title'] = $this -> title;
+		}
+
+		if (!empty($this -> _slug)) {
+			$request['slug'] = $this -> slug;
+		}
+		if (!empty($this -> _description)) {
+			$request['description'] = $this -> description;
+		}
+
+		if (!empty($this -> _meta_title)) {
+			$request['meta_title'] = $this -> meta_title;
+		}
+		if (!empty($this -> _meta_description)) {
+			$request['meta_description'] = $this -> meta_description;
+		}
+
+		$data = $this -> gpInstance -> rest -> post('collection/update/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Create collection
+	 *
+	 */
+
+	function create() {
+
+		if (empty($this -> _title)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+		$request['title'] = $this -> _title;
+
+		if (!empty($this -> _slug)) {
+			$request['slug'] = $this -> slug;
+		}
+		if (!empty($this -> _description)) {
+			$request['description'] = $this -> description;
+		}
+
+		if (!empty($this -> _meta_title)) {
+			$request['meta_title'] = $this -> meta_title;
+		}
+		if (!empty($this -> _meta_description)) {
+			$request['meta_description'] = $this -> meta_description;
+		}
+
+		$data = $this -> gpInstance -> rest -> post('collection/create/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Delete collection
+	 *
+	 */
+
+	function delete() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+
+		$request['id'] = $this -> id;
+
+		$data = $this -> gpInstance -> rest -> post('collection/delete/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Detail collection
+	 *
+	 */
+
+	function detail() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+
+		$request['id'] = $this -> id;
+
+		$data = $this -> gpInstance -> rest -> get('collection/detail/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * List collection
+	 *
+	 */
+
+	function get() {
+
+		$request = array();
+
+		if (!empty($this -> _product_id)) {
+			$request['product_id'] = $this -> product_id;
+		}
+
+		if (!empty($this -> _date_start)) {
+			$request['date_start'] = $this -> date_start;
+		}
+		if (!empty($this -> _date_end)) {
+			$request['date_end'] = $this -> date_end;
+		}
+		if (!empty($this -> _limit)) {
+			$request['limit'] = $this -> limit;
+		}
+		if (!empty($this -> _page)) {
+			$request['page'] = $this -> page;
+		}
+
+		$data = $this -> gpInstance -> rest -> get('collection/list/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Add product to collection
+	 *
+	 */
+
+	function product_add() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		if (empty($this -> _product_id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+		$request['product_id'] = $this -> product_id;
+		$request['id'] = $this -> id;
+
+		$data = $this -> gpInstance -> rest -> post('collection/add_product/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Remove product from collection
+	 *
+	 */
+
+	function product_remove() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		if (empty($this -> _product_id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+		$request['product_id'] = $this -> product_id;
+		$request['id'] = $this -> id;
+
+		$data = $this -> gpInstance -> rest -> post('collection/remove_product/', $request);
 		$this -> __reset();
 
 		return $data;
