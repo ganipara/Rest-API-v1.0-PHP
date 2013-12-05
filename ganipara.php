@@ -16,7 +16,8 @@
 class Ganipara {
 
 	public $rest;
-	protected $endpoint = "http://api.ganipara.com/1.0/";
+	private $endpoint = "https://api.ganipara.com/1.0/";
+	private $verify_peer = FALSE;
 	protected $private_key;
 	protected $public_key;
 
@@ -51,7 +52,7 @@ class Ganipara {
 		return self::$instance;
 	}
 
-	public function initialize($private_key = "", $public_key = "") {
+	public function initialize($private_key = "", $public_key = "", $verify_peer = FALSE, $end_point = FALSE) {
 
 		if (empty($private_key)) {
 			throw new Exception("Ganipara API private key missing");
@@ -60,9 +61,17 @@ class Ganipara {
 			throw new Exception("Ganipara API public key missing");
 		}
 
+		if (!empty($end_point)) {
+			$this -> endpoint = $end_point;
+		}
+		if (!empty($verify_peer)) {
+			$this -> verify_peer = $verify_peer;
+		}
+
 		$config['api_key'] = $private_key;
 		$config['api_public_key'] = $public_key;
 		$config['server'] = $this -> endpoint;
+		$config['ssl_verify_peer'] = $this -> verify_peer;
 		$this -> rest -> initialize($config);
 
 	}
@@ -445,7 +454,6 @@ class Ganipara_product {
 	private $_tags = array();
 	private $_images = array();
 
-
 	function __construct() {
 		$this -> gpInstance = Ganipara::getInstance();
 	}
@@ -722,8 +730,6 @@ class Ganipara_product {
 		return $data;
 
 	}
-
-	
 
 	/**
 	 * Variant keys for the product
