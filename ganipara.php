@@ -6,8 +6,8 @@
  *
  *
  * @package        	Ganipara
- * @author			Berkay UNAL
- * @author			Bora UNAL
+ * @author			Berkay ÜNAL
+ * @author			Bora ÜNAL
  * @author			Ganipara Team
  * @license         http://ganipara.com
  * @link			http://ganipara.com
