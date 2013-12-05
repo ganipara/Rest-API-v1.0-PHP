@@ -428,6 +428,21 @@ class Ganipara_product {
 	private $_meta_description;
 	private $_limit;
 	private $_page;
+	private $_excerpt;
+	private $_quantity_type;
+	private $_price;
+	private $_discount_price;
+	private $_cargo;
+	private $_photo_id;
+	private $_type;
+	private $_stock;
+	private $_collection_id;
+	private $_variant_id;
+	private $_variant_key_data = array();
+	private $_sku = array();
+	private $_collection = array();
+	private $_file = array();
+	private $_tags = array();
 	private $_images = array();
 
 	function __construct() {
@@ -448,7 +463,32 @@ class Ganipara_product {
 				}
 				break;
 
+			case "collection_id" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+
 			case "limit" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+
+			case "photo_id" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+			case "discount_price" :
+				if (!empty($value)) {
+					if (!is_numeric($value)) {
+						throw new Exception("Property($key) should be numeric");
+					}
+				}
+				break;
+
+			case "price" :
 				if (!is_numeric($value)) {
 					throw new Exception("Property($key) should be numeric");
 				}
@@ -484,7 +524,7 @@ class Ganipara_product {
 		$this -> {$property} = $value;
 	}
 
-	public function &__get($key) {
+	public function & __get($key) {
 		switch ($key) {
 
 			default :
@@ -501,78 +541,94 @@ class Ganipara_product {
 		$this -> gpInstance -> page = new $this->cClass();
 	}
 
-	/**
-	 * Update page
-	 *
-	 */
+	function variant($options = array()) {
 
-	function update() {
+		$variant_data = array();
 
-		if (empty($this -> _id) || empty($this -> _content)) {
-			throw new Exception("Missing parameter");
+		$default = $options['default'];
+		$key = $options['key'];
+		$name = $options['name'];
+
+		if (empty($key) && empty($name)) {
+			throw new Exception("Property(name) or Property(key) is missing parameter");
 		}
 
-		$request = array();
-		$request['id'] = $this -> id;
-
-		if (!empty($this -> _title)) {
-			$request['title'] = $this -> title;
+		if (!empty($name)) {
+			$variant_data['name'] = $name;
+		}
+		if (!empty($key)) {
+			$variant_data['key'] = $key;
+		}
+		if (!empty($default)) {
+			$variant_data['default'] = $default;
 		}
 
-		if (!empty($this -> _slug)) {
-			$request['slug'] = $this -> slug;
-		}
-		if (!empty($this -> _content)) {
-			$request['content'] = $this -> content;
-		}
-		if (!empty($this -> _published_status)) {
-			$request['published_status'] = $this -> published_status;
-		}
-		if (!empty($this -> _meta_title)) {
-			$request['meta_title'] = $this -> meta_title;
-		}
-		if (!empty($this -> _meta_description)) {
-			$request['meta_description'] = $this -> meta_description;
-		}
+		$this -> _variant_key_data[] = $variant_data;
+		return TRUE;
+	}
 
-		$data = $this -> gpInstance -> rest -> post('page/update/', $request);
-		$this -> __reset();
+	function image($options = array()) {
 
-		return $data;
+		$image_data = array();
+		$src = $options['src'];
+		$attachment = $options['attachment'];
+		$alt = $options['alt'];
 
+		if (empty($src) && empty($attachment)) {
+			throw new Exception("Property(src) or Property(attachment) is missing parameter");
+		}
+		if (!empty($src)) {
+			$image_data['src'] = $src;
+		}
+		if (!empty($attachment)) {
+			$image_data['attachment'] = $attachment;
+		}
+		if (!empty($alt)) {
+			$image_data['alt'] = $alt;
+		}
+		$this -> _images[] = $image_data;
+		return TRUE;
+	}
+
+	function file($options = array()) {
+
+		$image_data = array();
+		$src = $options['src'];
+		$attachment = $options['attachment'];
+		$filename = $options['filename'];
+
+		if (empty($src) && empty($attachment)) {
+			throw new Exception("Property(src) or Property(attachment) is missing parameter");
+		}
+		if (!empty($src)) {
+			$file_data['src'] = $src;
+		}
+		if (!empty($attachment)) {
+			$file_data['attachment'] = $attachment;
+		}
+		if (!empty($filename)) {
+			$file_data['filename'] = $filename;
+		}
+		$this -> _file[] = $file_data;
+		return TRUE;
 	}
 
 	/**
-	 * Create page
+	 * Detail page
 	 *
 	 */
 
-	function create() {
+	function detail() {
 
-		if (empty($this -> _title) || empty($this -> _content)) {
+		if (empty($this -> _id)) {
 			throw new Exception("Missing parameter");
 		}
 
 		$request = array();
-		$request['title'] = $this -> title;
 
-		if (!empty($this -> _slug)) {
-			$request['slug'] = $this -> slug;
-		}
-		if (!empty($this -> _content)) {
-			$request['content'] = $this -> content;
-		}
-		if (!empty($this -> _published_status)) {
-			$request['published_status'] = $this -> published_status;
-		}
-		if (!empty($this -> _meta_title)) {
-			$request['meta_title'] = $this -> meta_title;
-		}
-		if (!empty($this -> _meta_description)) {
-			$request['meta_description'] = $this -> meta_description;
-		}
+		$request['id'] = $this -> id;
 
-		$data = $this -> gpInstance -> rest -> post('page/create/', $request);
+		$data = $this -> gpInstance -> rest -> get('product/detail/', $request);
 		$this -> __reset();
 
 		return $data;
@@ -594,7 +650,7 @@ class Ganipara_product {
 
 		$request['id'] = $this -> id;
 
-		$data = $this -> gpInstance -> rest -> post('page/delete/', $request);
+		$data = $this -> gpInstance -> rest -> post('product/delete/', $request);
 		$this -> __reset();
 
 		return $data;
@@ -602,11 +658,11 @@ class Ganipara_product {
 	}
 
 	/**
-	 * Detail page
+	 * Variant add for the product
 	 *
 	 */
 
-	function detail() {
+	function variant_add($data = array()) {
 
 		if (empty($this -> _id)) {
 			throw new Exception("Missing parameter");
@@ -616,7 +672,412 @@ class Ganipara_product {
 
 		$request['id'] = $this -> id;
 
-		$data = $this -> gpInstance -> rest -> get('page/detail/', $request);
+		if (!empty($this -> _price)) {
+			$request['price'] = $this -> price;
+		}
+		if (!empty($this -> _sku)) {
+			$request['sku'] = $this -> sku;
+		}
+		if (!empty($this -> _stock)) {
+			$request['stock'] = $this -> stock;
+		}
+		if (!empty($this -> _cargo)) {
+			$request['cargo'] = $this -> cargo;
+		}
+		if (is_array($data) && count($data) > 0) {
+			$request['variant_data'] = $data;
+		}
+
+		$data = $this -> gpInstance -> rest -> post('product/variant_add/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Variant delete from the product
+	 *
+	 */
+
+	function variant_delete() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		if (empty($this -> _variant_id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+
+		$request['id'] = $this -> id;
+		$request['variant_id'] = $this -> variant_id;
+
+		$data = $this -> gpInstance -> rest -> post('product/variant_delete/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Variant update for the product
+	 *
+	 */
+
+	function variant_delete() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		if (empty($this -> _variant_id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+
+		$request['id'] = $this -> id;
+		$request['variant_id'] = $this -> variant_id;
+
+		if (!empty($this -> _price)) {
+			$request['price'] = $this -> price;
+		}
+		if (!empty($this -> _sku)) {
+			$request['sku'] = $this -> sku;
+		}
+		if (!empty($this -> _stock)) {
+			$request['stock'] = $this -> stock;
+		}
+		if (!empty($this -> _cargo)) {
+			$request['cargo'] = $this -> cargo;
+		}
+		if (is_array($data) && count($data) > 0) {
+			$request['variant_data'] = $data;
+		}
+
+		$data = $this -> gpInstance -> rest -> post('product/variant_update/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Variant keys for the product
+	 *
+	 */
+
+	function variant_keys() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+
+		$request['id'] = $this -> id;
+
+		$data = $this -> gpInstance -> rest -> post('product/variant_keys/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Update variant keys for the product
+	 *
+	 */
+
+	function variant_keys_update() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$variant_data = $this -> _variant_key_data;
+		if (!is_array($variant_data)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+
+		$request['id'] = $this -> id;
+		foreach ($variant_data as $k => $v) {
+			$request['variant_' . $k] = $v;
+		}
+
+		$data = $this -> gpInstance -> rest -> post('product/variant_keys_update/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Create page
+	 *
+	 */
+
+	function create() {
+
+		$request = array();
+
+		if (!empty($this -> _type)) {
+			$request['type'] = $this -> type;
+		}
+
+		if (!empty($this -> _title)) {
+			$request['title'] = $this -> title;
+		}
+		if (!empty($this -> _content)) {
+			$request['content'] = $this -> content;
+		}
+
+		if (!empty($this -> _slug)) {
+			$request['slug'] = $this -> slug;
+		}
+
+		if (!empty($this -> _excerpt)) {
+			$request['excerpt'] = $this -> excerpt;
+		}
+		if (!empty($this -> _quantity_type)) {
+			$request['quantity_type'] = $this -> quantity_type;
+		}
+		if (!empty($this -> _price)) {
+			$request['price'] = $this -> price;
+		}
+		if (!empty($this -> _discount_price)) {
+			$request['discount_price'] = $this -> discount_price;
+		}
+		if (!empty($this -> _stock)) {
+			$request['stock'] = $this -> stock;
+		}
+
+		if (!empty($this -> _cargo)) {
+			$request['cargo'] = $this -> cargo;
+		}
+		if (!empty($this -> _collection)) {
+			$request['collection'] = $this -> collection;
+		}
+		if (!empty($this -> _images)) {
+			$request['images'] = $this -> images;
+		}
+		if (!empty($this -> _file)) {
+			$request['file'] = $this -> _file[0];
+		}
+		if (!empty($this -> _tags)) {
+			$request['tags'] = $this -> tags;
+		}
+
+		if (!empty($this -> _published_status)) {
+			$request['published_status'] = $this -> published_status;
+		}
+		if (!empty($this -> _meta_title)) {
+			$request['meta_title'] = $this -> meta_title;
+		}
+		if (!empty($this -> _meta_description)) {
+			$request['meta_description'] = $this -> meta_description;
+		}
+
+		$data = $this -> gpInstance -> rest -> post('product/create/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Update page
+	 *
+	 */
+
+	function update() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+		$request['id'] = $this -> id;
+
+		if (!empty($this -> _title)) {
+			$request['title'] = $this -> title;
+		}
+
+		if (!empty($this -> _slug)) {
+			$request['slug'] = $this -> slug;
+		}
+		if (!empty($this -> _content)) {
+			$request['content'] = $this -> content;
+		}
+		if (!empty($this -> _excerpt)) {
+			$request['excerpt'] = $this -> excerpt;
+		}
+		if (!empty($this -> _quantity_type)) {
+			$request['quantity_type'] = $this -> quantity_type;
+		}
+		if (!empty($this -> _price)) {
+			$request['price'] = $this -> price;
+		}
+		if (!empty($this -> _cargo)) {
+			$request['cargo'] = $this -> cargo;
+		}
+		if (!empty($this -> _collection)) {
+			$request['collection'] = $this -> collection;
+		}
+		if (!empty($this -> _file)) {
+			$request['file'] = $this -> _file[0];
+		}
+		if (!empty($this -> _tags)) {
+			$request['tags'] = $this -> tags;
+		}
+		if (!empty($this -> _discount_price)) {
+			$request['discount_price'] = $this -> discount_price;
+		}
+		if (!empty($this -> _published_status)) {
+			$request['published_status'] = $this -> published_status;
+		}
+		if (!empty($this -> _meta_title)) {
+			$request['meta_title'] = $this -> meta_title;
+		}
+		if (!empty($this -> _meta_description)) {
+			$request['meta_description'] = $this -> meta_description;
+		}
+
+		$data = $this -> gpInstance -> rest -> post('product/update/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Images add to product
+	 *
+	 */
+
+	function image_add() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+
+		$request['id'] = $this -> id;
+
+		$images = $this -> images;
+
+		if (is_array($images) && count($images) > 0) {
+			if (isset($images['attachment']) || isset($images['src'])) {
+				$_image = array("attachment" => $images['attachment'], "src" => $images['src'], "alt" => $images['v']);
+			} else {
+				$_image = $images[0];
+			}
+		} else {
+			throw new Exception("Missing parameter");
+		}
+
+		if (!empty($_image['attachment'])) {
+			$request['attachment'] = $_image['attachment'];
+		}
+		if (!empty($_image['src'])) {
+			$request['src'] = $_image['src'];
+		}
+		if (!empty($_image['alt'])) {
+			$request['alt'] = $_image['alt'];
+		}
+
+		$data = $this -> gpInstance -> rest -> post('product/image_add/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Images delete from product
+	 *
+	 */
+
+	function image_delete() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+		if (empty($this -> _photo_id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+
+		$request['id'] = $this -> id;
+		$request['photo_id'] = $this -> _photo_id;
+
+		$data = $this -> gpInstance -> rest -> post('product/image_delete/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Images update from product
+	 *
+	 */
+
+	function image_update($options = array()) {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+		if (empty($this -> _photo_id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+
+		$request['id'] = $this -> id;
+		$request['photo_id'] = $this -> _photo_id;
+
+		if (!empty($options['alt'])) {
+			$request['alt'] = $options['alt'];
+		}
+		if (!empty($options['sort_order']) && is_numeric($options['sort_order'])) {
+			$request['sort_order'] = $options['sort_order'];
+		}
+
+		$data = $this -> gpInstance -> rest -> post('product/image_update/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+	/**
+	 * Images of the product
+	 *
+	 */
+
+	function image_get() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+
+		$request['id'] = $this -> id;
+
+		$data = $this -> gpInstance -> rest -> get('product/images/', $request);
 		$this -> __reset();
 
 		return $data;
@@ -632,12 +1093,14 @@ class Ganipara_product {
 
 		$request = array();
 
-		if (!empty($this -> _title)) {
-			$request['title'] = $this -> title;
+		if (!empty($this -> _type)) {
+			$request['type'] = $this -> type;
 		}
-		if (!empty($this -> _slug)) {
-			$request['slug'] = $this -> slug;
+
+		if (!empty($this -> _collection_id)) {
+			$request['collection_id'] = $this -> collection_id;
 		}
+
 		if (!empty($this -> _published_status)) {
 			$request['published_status'] = $this -> published_status;
 		}
@@ -654,7 +1117,7 @@ class Ganipara_product {
 			$request['page'] = $this -> page;
 		}
 
-		$data = $this -> gpInstance -> rest -> get('page/list/', $request);
+		$data = $this -> gpInstance -> rest -> get('product/list/', $request);
 		$this -> __reset();
 
 		return $data;
@@ -670,12 +1133,14 @@ class Ganipara_product {
 
 		$request = array();
 
-		if (!empty($this -> _title)) {
-			$request['title'] = $this -> title;
+		if (!empty($this -> _type)) {
+			$request['type'] = $this -> type;
 		}
-		if (!empty($this -> _slug)) {
-			$request['slug'] = $this -> slug;
+
+		if (!empty($this -> _collection_id)) {
+			$request['collection_id'] = $this -> collection_id;
 		}
+
 		if (!empty($this -> _published_status)) {
 			$request['published_status'] = $this -> published_status;
 		}
@@ -686,7 +1151,7 @@ class Ganipara_product {
 			$request['date_end'] = $this -> date_end;
 		}
 
-		$data = $this -> gpInstance -> rest -> get('page/count/', $request);
+		$data = $this -> gpInstance -> rest -> get('product/count/', $request);
 		$this -> __reset();
 
 		return $data;
