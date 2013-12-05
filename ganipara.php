@@ -445,6 +445,7 @@ class Ganipara_product {
 	private $_tags = array();
 	private $_images = array();
 
+
 	function __construct() {
 		$this -> gpInstance = Ganipara::getInstance();
 	}
