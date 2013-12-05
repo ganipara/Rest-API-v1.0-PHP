@@ -723,52 +723,7 @@ class Ganipara_product {
 
 	}
 
-	/**
-	 * Variant update for the product
-	 *
-	 */
-
-	function variant_delete() {
-
-		if (empty($this -> _id)) {
-			throw new Exception("Missing parameter");
-		}
-
-		if (empty($this -> _variant_id)) {
-			throw new Exception("Missing parameter");
-		}
-
-		if (empty($this -> _id)) {
-			throw new Exception("Missing parameter");
-		}
-
-		$request = array();
-
-		$request['id'] = $this -> id;
-		$request['variant_id'] = $this -> variant_id;
-
-		if (!empty($this -> _price)) {
-			$request['price'] = $this -> price;
-		}
-		if (!empty($this -> _sku)) {
-			$request['sku'] = $this -> sku;
-		}
-		if (!empty($this -> _stock)) {
-			$request['stock'] = $this -> stock;
-		}
-		if (!empty($this -> _cargo)) {
-			$request['cargo'] = $this -> cargo;
-		}
-		if (is_array($data) && count($data) > 0) {
-			$request['variant_data'] = $data;
-		}
-
-		$data = $this -> gpInstance -> rest -> post('product/variant_update/', $request);
-		$this -> __reset();
-
-		return $data;
-
-	}
+	
 
 	/**
 	 * Variant keys for the product
