@@ -16,7 +16,7 @@
 class Ganipara {
 
 	public $rest;
-	protected $endpoint = "http://api.ganipara.home/1.0/";
+	protected $endpoint = "http://api.ganipara.com/1.0/";
 	protected $private_key;
 	protected $public_key;
 
