@@ -1834,6 +1834,20 @@ class Ganipara_shop {
 		return $data;
 
 	}
+	
+	/**
+	 * Return resource detail about the shop
+	 *
+	 */
+
+	function resource() {
+
+		$data = $this -> gpInstance -> rest -> get('shop/resource_available/');
+		$this -> __reset();
+
+		return $data;
+
+	}
 
 }
 
