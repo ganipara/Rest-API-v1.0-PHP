@@ -29,6 +29,7 @@ class Ganipara {
 	public $shop;
 	public $collection;
 	public $product;
+	public $order;
 
 	function __construct($config = array()) {
 
@@ -41,6 +42,7 @@ class Ganipara {
 		$this -> shop = new Ganipara_shop();
 		$this -> collection = new Ganipara_collection();
 		$this -> product = new Ganipara_product();
+		$this -> order = new Ganipara_order();
 	}
 
 	public static function getInstance() {
@@ -416,6 +418,91 @@ class Ganipara_page {
 		}
 
 		$data = $this -> gpInstance -> rest -> get('page/count/', $request);
+		$this -> __reset();
+
+		return $data;
+
+	}
+
+}
+
+class Ganipara_order {
+
+	protected $gpInstance;
+	protected $cClass = "Ganipara_order";
+	private $_id;
+
+	function __construct() {
+		$this -> gpInstance = Ganipara::getInstance();
+	}
+
+	function __deconstruct() {
+
+	}
+
+	public function __set($key, $value) {
+
+		switch ($key) {
+
+			case "id" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+
+			case "limit" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+
+			case "page" :
+				if (!is_numeric($value)) {
+					throw new Exception("Property($key) should be numeric");
+				}
+				break;
+		}
+
+		$property = "_$key";
+		if (!property_exists($this, $property))
+			throw new Exception("Property($key) not found");
+
+		$this -> {$property} = $value;
+	}
+
+	public function __get($key) {
+		switch ($key) {
+
+			default :
+				$property = "_$key";
+				if (!property_exists($this, $property)) {
+					throw new Exception("Property($key) not found");
+				}
+				return $this -> {$property};
+				break;
+		}
+	}
+
+	function __reset() {
+		$this -> gpInstance -> page = new $this->cClass();
+	}
+
+	/**
+	 * Detail order
+	 *
+	 */
+
+	function detail() {
+
+		if (empty($this -> _id)) {
+			throw new Exception("Missing parameter");
+		}
+
+		$request = array();
+
+		$request['id'] = $this -> id;
+
+		$data = $this -> gpInstance -> rest -> get('order/detail/', $request);
 		$this -> __reset();
 
 		return $data;
@@ -1834,7 +1921,7 @@ class Ganipara_shop {
 		return $data;
 
 	}
-	
+
 	/**
 	 * Return resource detail about the shop
 	 *
