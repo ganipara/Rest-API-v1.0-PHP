@@ -1813,7 +1813,7 @@ class Ganipara_app {
 	protected $gpInstance;
 	protected $cClass = "Ganipara_app";
 
-	private $_endpoint = "http://ganipara.home/oauth";
+	private $_endpoint = "https://ganipara.com/oauth";
 	private $_client_id;
 	private $_client_secret;
 	private $_redirect_url;
