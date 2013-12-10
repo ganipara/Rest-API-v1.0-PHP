@@ -16,14 +16,17 @@
 class Ganipara {
 
 	public $rest;
-	private $endpoint = "https://api.ganipara.com/1.0/";
-	private $verify_peer = FALSE;
-	protected $private_key;
-	protected $public_key;
+	private $_endpoint = "https://api.ganipara.com/1.0/";
+	private $_verify_peer = FALSE;
+	protected $_private_key;
+	protected $_public_key;
+	protected $_access_token;
+	protected $_config;
 
 	private static $instance;
 
 	public $page;
+	public $app;
 	public $webhook;
 	public $cargo;
 	public $shop;
@@ -35,7 +38,11 @@ class Ganipara {
 
 		self::$instance = $this;
 
+		$this -> _config['server'] = $this -> endpoint;
+		$this -> _config['ssl_verify_peer'] = $this -> verify_peer;
+
 		$this -> rest = new Ganipara_rest();
+		$this -> app = new Ganipara_app();
 		$this -> page = new Ganipara_page();
 		$this -> webhook = new Ganipara_webhook();
 		$this -> cargo = new Ganipara_cargo();
@@ -54,27 +61,63 @@ class Ganipara {
 		return self::$instance;
 	}
 
-	public function initialize($private_key = "", $public_key = "", $verify_peer = FALSE, $end_point = FALSE) {
+	public function endpoint($end_point = FALSE) {
+		if (!empty($end_point)) {
+			$this -> _endpoint = $end_point;
+		}
+		return TRUE;
+	}
 
+	public function verify_peer($verify_peer = FALSE) {
+		if (!empty($verify_peer) && is_bool($verify_peerF)) {
+			$this -> _verify_peer = (bool)$verify_peer;
+		}
+		return FALSE;
+	}
+
+	public function access_token($access_token = "") {
+		if (empty($access_token)) {
+			throw new Exception("Ganipara API access token missing");
+		}
+		$this -> _access_token = $access_token;
+		return TRUE;
+	}
+
+	public function private_key($private_key) {
 		if (empty($private_key)) {
 			throw new Exception("Ganipara API private key missing");
 		}
+		$this -> _private_key = $private_key;
+		return TRUE;
+	}
+
+	public function public_key($public_key) {
 		if (empty($public_key)) {
 			throw new Exception("Ganipara API public key missing");
 		}
+		$this -> _public_key = $public_key;
+		return TRUE;
+	}
 
-		if (!empty($end_point)) {
-			$this -> endpoint = $end_point;
+	public function initialize($private_key = FALSE, $public_key = FALSE, $access_token = FALSE) {
+
+		if (!empty($private_key)) {
+			$this -> private_key($private_key);
 		}
-		if (!empty($verify_peer)) {
-			$this -> verify_peer = $verify_peer;
+		if (!empty($public_key)) {
+			$this -> public_key($public_key);
+		}
+		if (!empty($access_token)) {
+			$this -> access_token($access_token);
 		}
 
-		$config['api_key'] = $private_key;
-		$config['api_public_key'] = $public_key;
-		$config['server'] = $this -> endpoint;
-		$config['ssl_verify_peer'] = $this -> verify_peer;
-		$this -> rest -> initialize($config);
+		$this -> _config['api_key'] = $this -> _private_key;
+		$this -> _config['api_public_key'] = $this -> _public_key;
+		$this -> _config['api_access_token'] = $this -> _access_token;
+		$this -> _config['server'] = $this -> _endpoint;
+		$this -> _config['ssl_verify_peer'] = $this -> _verify_peer;
+
+		$this -> rest -> initialize($this -> _config);
 
 	}
 
@@ -1766,6 +1809,131 @@ class Ganipara_webhook {
 
 }
 
+class Ganipara_app {
+	protected $gpInstance;
+	protected $cClass = "Ganipara_app";
+
+	private $_endpoint = "http://ganipara.home/oauth";
+	private $_client_id;
+	private $_client_secret;
+	private $_redirect_url;
+	private $_access_code;
+
+	function __construct() {
+		$this -> gpInstance = Ganipara::getInstance();
+	}
+
+	public function __set($key, $value) {
+
+		switch ($key) {
+
+			case "endpoint" :
+				if (empty($value)) {
+					throw new Exception("Property($key) cannot be empty");
+				}
+				break;
+			case "client_id" :
+				if (empty($value)) {
+					throw new Exception("Property($key) cannot be empty");
+				}
+				break;
+			case "client_secret" :
+				if (empty($value)) {
+					throw new Exception("Property($key) cannot be empty");
+				}
+				break;
+			case "redirect_url" :
+				if (empty($value)) {
+					throw new Exception("Property($key) cannot be empty");
+				}
+				break;
+		}
+
+		$property = "_$key";
+		if (!property_exists($this, $property))
+			throw new Exception("Property($key) not found");
+
+		$this -> {$property} = $value;
+	}
+
+	public function & __get($key) {
+		switch ($key) {
+
+			default :
+				$property = "_$key";
+				if (!property_exists($this, $property)) {
+					throw new Exception("Property($key) not found");
+				}
+				return $this -> {$property};
+				break;
+		}
+	}
+
+	// Get the URL required to request authorization
+	public function getAuthorizeUrl($scope = FALSE, $state = FALSE) {
+
+		if (empty($scope)) {
+			throw new Exception("Scope cannot be empty");
+		}
+
+		if (is_array($scope) && count($scope) > 0) {
+			$scope = implode(",", $scope);
+		}
+
+		$url = $this -> _endpoint . "/request?response_type=code&client_id={$this->_client_id}&scope=" . urlencode($scope);
+		if ($this -> _redirect_url != '') {
+			$url .= "&redirect_uri=" . urlencode($this -> _redirect_url);
+		}
+		if (!empty($state)) {
+			$url .= "&state=" . urlencode($state);
+		}
+		return $url;
+	}
+
+	public function getScopes($access_code = "") {
+
+		if (!empty($access_code)) {
+			$this -> access_code = $access_code;
+		}
+
+		$request['client_id'] = $this -> client_id;
+		$request['client_secret'] = $this -> client_secret;
+		$request['access_code'] = $this -> access_code;
+
+		$curl = new Ganipara_curl();
+
+		$result = $curl -> simple_post($this -> endpoint . '/scopes/', $request);
+		$response = json_decode($result, TRUE);
+		if (isset($response['scopes'])) {
+			return $response['scopes'];
+		}
+		return FALSE;
+	}
+
+	// Once the User has authorized the app, call this with the code to get the access token
+	function getAccessToken($code) {
+
+		$request['client_id'] = $this -> client_id;
+		$request['client_secret'] = $this -> client_secret;
+		$request['redirect_uri'] = $this -> redirect_url;
+		$request['code'] = trim($code);
+		$request['grant_type'] = "authorization_code";
+
+		$curl = new Ganipara_curl();
+		$result = $curl -> simple_post($this -> _endpoint . '/access_token/', $request);
+		$response = json_decode($result, TRUE);
+		if (isset($response['access_token'])) {
+			return $response['access_token'];
+		}
+		return FALSE;
+	}
+
+	function __deconstruct() {
+
+	}
+
+}
+
 class Ganipara_cargo {
 
 	protected $gpInstance;
@@ -1966,6 +2134,7 @@ class Ganipara_rest {
 	protected $api_name = 'GP-API-KEY';
 	protected $api_key = null;
 	protected $api_public_key = null;
+	protected $api_access_token = null;
 
 	protected $ssl_verify_peer = null;
 	protected $ssl_cainfo = null;
@@ -1994,6 +2163,7 @@ class Ganipara_rest {
 		}
 		$this -> api_name = "GP";
 
+		isset($config['api_access_token']) && $this -> api_access_token = $config['api_access_token'];
 		isset($config['api_key']) && $this -> api_key = $config['api_key'];
 		isset($config['api_public_key']) && $this -> api_public_key = $config['api_public_key'];
 		isset($config['ssl_verify_peer']) && $this -> ssl_verify_peer = $config['ssl_verify_peer'];
@@ -2113,14 +2283,19 @@ class Ganipara_rest {
 			$this -> curl -> http_login($this -> http_user, $this -> http_pass, $this -> http_auth);
 		}
 
-		// If we have an API Key, then use it
+		// If we have an API Private Key, then use it
 		if ($this -> api_key != '') {
 			$this -> curl -> http_header($this -> api_name, $this -> api_key);
 		}
 
-		// If we have an API Key, then use it
+		// If we have an API Public Key, then use it
 		if ($this -> api_public_key != '') {
 			$this -> curl -> http_header($this -> api_name . "_PUBLIC", $this -> api_public_key);
+		}
+
+		// If we have an API Access Token, then use it
+		if ($this -> api_access_token != '') {
+			$this -> curl -> http_header($this -> api_name . "_ACCESS_TOKEN", $this -> api_access_token);
 		}
 
 		// Set the Content-Type (contributed by https://github.com/eriklharper)
